@@ -1,10 +1,10 @@
 #!/usr/bin/python2
 import utils
 import config as cfg
-import models
+from CNN_models import models
 import os
 import numpy as np
-import load_data as ld
+from img_process import load_data as ld
 
 if __name__ == '__main__':
     np.random.seed(2345)
@@ -13,7 +13,9 @@ if __name__ == '__main__':
     #m_param = [(1,1,0,5),(1,1,4,5)];
     m_param = [(1,1,4,5)];
     model_weights = [1.0]*len(m_param);
-    predict_fn = models.get_predict_function(m_param, model_weights);
+	file_fmt = cfg.params_dir + '/cnn{}_tag{}_f{}_ep{}.npz';
+    shape = (None, 3, cfg.WIDTH, cfg.HEIGHT)
+    predict_fn = models.get_predict_function(m_param, model_weights, file_fmt, shape);
 
     load_and_process = ld.LoadAndProcess(
             size = None,

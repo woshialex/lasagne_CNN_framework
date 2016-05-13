@@ -4,11 +4,11 @@ import theano.tensor as T
 import lasagne as nn
 
 import os
-from models import *
+from CNN_models.models import *
 
 import numpy as np
 import config as cfg
-import load_data as ld
+from img_process import load_data as ld
 from sklearn.cross_validation import KFold
 import time
 
@@ -37,10 +37,10 @@ if __name__=='__main__':
     input_var = T.tensor4('input')
     label_var = T.ivector('label')
 
-    net, output, output_det = build_cnn(input_var, (None, 3, c.WIDTH, c.HEIGHT), 
+    net, output, output_det = build_cnn(input_var, (None, 3, cfg.WIDTH, cfg.HEIGHT), 
             version=cfg.net_version)
     ###continue training !!!!
-    #u.load_params(net['output'], c.params_dir + '/cnn_v7_tag14_f4.npz');
+    #u.load_params(net['output'], cfg.params_dir + '/cnn_v7_tag14_f4.npz');
 
     for l in nn.layers.get_all_layers(net['output']):
         print nn.layers.get_output_shape(l)

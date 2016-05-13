@@ -4,12 +4,6 @@ import lasagne as nn
 import cv2
 import config as cfg;
 
-# loads params in npz
-def load_params(model, fn):
-    with np.load(fn) as f:
-        param_values = [f['arr_%d' % i] for i in range(len(f.files))]
-    nn.layers.set_all_param_values(model, param_values)
-
 def cross_entropy(pred, label, cap = 1e-5):
     x = np.clip(pred,cap,1-cap);
     x = x/np.sum(x,axis=1)[:,np.newaxis];

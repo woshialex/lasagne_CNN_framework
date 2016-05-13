@@ -2,11 +2,7 @@ import theano
 import theano.tensor as T
 import lasagne as nn
 from lasagne.layers import batch_norm as bn
-
 import os
-
-import utils
-import config as cfg;
 import numpy as np
 
 def build_cnn(input_var, shape, version=1, N_output=5):
@@ -262,17 +258,21 @@ def build_cnn(input_var, shape, version=1, N_output=5):
     return ret, nn.layers.get_output(ret['output']), \
             nn.layers.get_output(ret['output'], deterministic=True)
 
-def get_predict_function(m_param, weights):
+# loads params in npz
+def load_params(model, fn):
+    with np.load(fn) as f:
+        param_values = [f['arr_%d' % i] for i in range(len(f.files))]
+    nn.layers.set_all_param_values(model, param_values)
+
+def get_predict_function(m_param, weights, file_fmt, shape):
     weights = np.asarray(weights, dtype=np.float32);
     weights = weights/np.sum(weights);
-
-    shape = (None, 3, cfg.WIDTH, cfg.HEIGHT)
     input_var = T.tensor4('input')
     expr = 0
     for ii in range(len(m_param)):
-        model_file = cfg.params_dir + '/cnn{}_tag{}_f{}_ep{}.npz'.format(*(m_param[ii])) 
+        model_file = file_fmt.format(*(m_param[ii])) 
         net, _, output_det = build_cnn(input_var, shape, m_param[ii][0])
-        utils.load_params(net['output'], model_file)
+        load_params(net['output'], model_file)
         expr = expr + output_det * weights[ii];
         print 'loaded {}'.format(model_file.split('/')[-1])
     return theano.function([input_var], expr)
