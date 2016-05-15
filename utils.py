@@ -41,7 +41,7 @@ def make_submission(filename, name_idx, res, cap = 1e-5):
     submit_csv.write("img,c0,c1,c2,c3,c4,c5,c6,c7,c8,c9\n");
     res = np.clip(res,cap,1-cap);
     for i in range(len(name_idx)):
-        submit_csv.write("img_{}.jpg,".format(name_idx[i]));
+        submit_csv.write("{},".format(name_idx[i]));
         submit_csv.write(','.join([str(x) for x in res[i]]));
         submit_csv.write('\n');
     submit_csv.close();
