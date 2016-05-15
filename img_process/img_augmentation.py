@@ -167,3 +167,11 @@ def load_augment(fname, w, h, aug_params=no_augmentation_params,
     np.divide(img, STD[:, np.newaxis, np.newaxis], out=img)
     img = augment_color(img, sigma=sigma, color_vec=color_vec)
     return img
+
+
+def match_pretrained(img,S): #fill with 0s to match pretrained network size
+    imgs_resize = np.zeros((img.shape[0],S,S),dtype=np.float32)
+    w,h = img.shape[1:];
+    a,b = (S-w)/2,(S-h)/2;
+    imgs_resize[:,a:a+w,b:b+h] = img;
+    return imgs_resize;

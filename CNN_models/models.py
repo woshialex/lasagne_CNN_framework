@@ -4,33 +4,34 @@ import lasagne as nn
 from lasagne.layers import batch_norm as bn
 import os
 import numpy as np
+import sys
+sys.path.append('..')
+from SETTINGS import params_dir
 
-def build_cnn(input_var, shape, version=1, N_output=5):
+def build_cnn(input_var, shape, version=1, N_output=10):
     ret = {}
     if N_output == 1:
         output_fn = nn.nonlinearities.sigmoid;
     else:
         output_fn = nn.nonlinearities.softmax;
+    nlf = nn.nonlinearities.LeakyRectify(leakiness = 0.1);
+
     if version == 1: 
-        nlf = nn.nonlinearities.LeakyRectify(leakiness = 0.1);
         ret['input'] = layer = nn.layers.InputLayer(shape, input_var)
-        ret['conv{}'.format(len(ret))] = layer = bn(nn.layers.Conv2DLayer(layer, num_filters=16, filter_size=(7,7), nonlinearity = nlf))
+        ret['conv{}'.format(len(ret))] = layer = bn(nn.layers.Conv2DLayer(layer, num_filters=16, filter_size=(5,5), nonlinearity = nlf))
         ret['pool{}'.format(len(ret))] = layer = nn.layers.MaxPool2DLayer(layer, pool_size=2)
-        ret['conv{}'.format(len(ret))] = layer = bn(nn.layers.Conv2DLayer(layer, num_filters=32, filter_size=(5,5), nonlinearity = nlf))
+        ret['conv{}'.format(len(ret))] = layer = bn(nn.layers.Conv2DLayer(layer, num_filters=32, filter_size=(3,3), nonlinearity = nlf))
         ret['pool{}'.format(len(ret))] = layer = nn.layers.MaxPool2DLayer(layer, pool_size=2)
         ret['conv{}'.format(len(ret))] = layer = bn(nn.layers.Conv2DLayer(layer, num_filters=64, filter_size=(5,5), nonlinearity = nlf))
         ret['pool{}'.format(len(ret))] = layer = nn.layers.MaxPool2DLayer(layer, pool_size=2)
         ret['conv{}'.format(len(ret))] = layer = bn(nn.layers.Conv2DLayer(layer, num_filters=128, filter_size=(3,3), nonlinearity = nlf))
         ret['pool{}'.format(len(ret))] = layer = nn.layers.MaxPool2DLayer(layer, pool_size=2)
         ret['conv{}'.format(len(ret))] = layer = bn(nn.layers.Conv2DLayer(layer, num_filters=256, filter_size=(3,3), nonlinearity = nlf))
-        ret['pool{}'.format(len(ret))] = layer = nn.layers.MaxPool2DLayer(layer, pool_size=2)
-        ret['conv{}'.format(len(ret))] = layer = bn(nn.layers.Conv2DLayer(layer, num_filters=512, filter_size=(3,3), nonlinearity = nlf))
         ret['flatten'] = layer = nn.layers.FlattenLayer(layer);
-        #ret['dropout'] = layer = nn.layers.dropout(layer,0.5);
-        ret['FC{}'.format(len(ret))] = layer = nn.layers.DenseLayer(layer, num_units = 64, nonlinearity = nlf);
+        ret['dropout'] = layer = nn.layers.dropout(layer,0.5);
+        ret['FC{}'.format(len(ret))] = layer = nn.layers.DenseLayer(layer, num_units = 128, nonlinearity = nlf);
         ret['output'] = layer = nn.layers.DenseLayer(layer, num_units=N_output, nonlinearity=output_fn)
     elif version == 2:
-        nlf = nn.nonlinearities.LeakyRectify(leakiness = 0.1);
         ret['input'] = layer = nn.layers.InputLayer(shape, input_var)
         ret['conv{}'.format(len(ret))] = layer = bn(nn.layers.Conv2DLayer(layer, num_filters=32, filter_size=(3,3), nonlinearity = nlf))
         ret['conv{}'.format(len(ret))] = layer = bn(nn.layers.Conv2DLayer(layer, num_filters=32, filter_size=(3,3), nonlinearity = nlf))
@@ -49,7 +50,6 @@ def build_cnn(input_var, shape, version=1, N_output=5):
         ret['FC{}'.format(len(ret))] = layer = nn.layers.DenseLayer(layer, num_units = 64, nonlinearity = nlf);
         ret['output'] = layer = nn.layers.DenseLayer(layer, num_units=N_output, nonlinearity=output_fn)
     elif version == 3:#196, CV=0.66
-        nlf = nn.nonlinearities.LeakyRectify(leakiness = 0.1);
         ret['input'] = layer = nn.layers.InputLayer(shape, input_var)
         ret['conv{}'.format(len(ret))] = layer = bn(nn.layers.Conv2DLayer(layer, num_filters=16, filter_size=(3,3), nonlinearity = nlf))
         ret['conv{}'.format(len(ret))] = layer = bn(nn.layers.Conv2DLayer(layer, num_filters=16, filter_size=(3,3), nonlinearity = nlf))
@@ -69,7 +69,6 @@ def build_cnn(input_var, shape, version=1, N_output=5):
         ret['FC{}'.format(len(ret))] = layer = nn.layers.DenseLayer(layer, num_units = 64, nonlinearity = nlf);
         ret['output'] = layer = nn.layers.DenseLayer(layer, num_units=N_output, nonlinearity=output_fn)
     elif version == 4: #196
-        nlf = nn.nonlinearities.LeakyRectify(leakiness = 0.1);
         ret['input'] = layer = nn.layers.InputLayer(shape, input_var)
         ret['conv{}'.format(len(ret))] = layer = bn(nn.layers.Conv2DLayer(layer, num_filters=32, filter_size=(3,3), nonlinearity = nlf))
         ret['conv{}'.format(len(ret))] = layer = bn(nn.layers.Conv2DLayer(layer, num_filters=32, filter_size=(3,3), nonlinearity = nlf))
@@ -91,7 +90,6 @@ def build_cnn(input_var, shape, version=1, N_output=5):
         ret['FC{}'.format(len(ret))] = layer = nn.layers.DenseLayer(layer, num_units = 128, nonlinearity = nlf);
         ret['output'] = layer = nn.layers.DenseLayer(layer, num_units=N_output, nonlinearity=output_fn)
     elif version == 5:#VGG 16, LB = 0.32
-        nlf = nn.nonlinearities.LeakyRectify(leakiness = 0.1);
         from lasagne.layers import Conv2DLayer as ConvLayer;
         from lasagne.layers import MaxPool2DLayer as PoolLayer;
         ret['input'] =  nn.layers.InputLayer((None,3,224,224), input_var)
@@ -126,7 +124,7 @@ def build_cnn(input_var, shape, version=1, N_output=5):
         ret['fc8'] = nn.layers.DenseLayer(ret['fc7_dropout'], num_units=1000, nonlinearity=None)
         ret['output'] = nn.layers.NonlinearityLayer(ret['fc8'], nn.nonlinearities.softmax)
         import pickle
-        model = pickle.load(open(c.params_dir+'/vgg16.pkl'));
+        model = pickle.load(open(params_dir+'/vgg16.pkl'));
         nn.layers.set_all_param_values(ret['output'],model['param values']);
         ret.pop("output",None);
         ret.pop("fc8",None);
@@ -175,7 +173,7 @@ def build_cnn(input_var, shape, version=1, N_output=5):
         ret['fc8'] = nn.layers.DenseLayer(ret['fc7_dropout'], num_units=1000, nonlinearity=None)
         ret['output'] = nn.layers.NonlinearityLayer(ret['fc8'], nn.nonlinearities.softmax)
         import pickle
-        model = pickle.load(open(c.params_dir+'/vgg16.pkl'));
+        model = pickle.load(open(params_dir+'/vgg16.pkl'));
         nn.layers.set_all_param_values(ret['output'],model['param values']);
         ret.pop("output",None);
         ret.pop("fc8",None);
@@ -188,7 +186,7 @@ def build_cnn(input_var, shape, version=1, N_output=5):
         import inception_v3 
         ret = inception_v3.build_network(input_var);
         import pickle
-        model = pickle.load(open(c.params_dir+'/inception_v3.pkl'));
+        model = pickle.load(open(params_dir+'/inception_v3.pkl'));
         nn.layers.set_all_param_values(ret['softmax'],model['param values']);
         ret.pop("softmax",None);
         ret['pool3_dropout'] = nn.layers.dropout(ret['pool3'], p=0.5)
@@ -204,7 +202,7 @@ def build_cnn(input_var, shape, version=1, N_output=5):
         import inception_v3 
         ret = inception_v3.build_network(input_var);
         import pickle
-        model = pickle.load(open(c.params_dir+'/inception_v3.pkl'));
+        model = pickle.load(open(params_dir+'/inception_v3.pkl'));
         nn.layers.set_all_param_values(ret['softmax'],model['param values']);
         ret.pop("softmax",None);
         ret['pool3_dropout'] = nn.layers.dropout(ret['pool3'], p=0.5) #0.5 is a little better than 0.7
@@ -221,7 +219,7 @@ def build_cnn(input_var, shape, version=1, N_output=5):
         import Deep_Residual_Learning as resnet
         ret['output'] = resnet.build_cnn(shape, input_var, n=2);
         #import pickle
-        #model = pickle.load(open(c.params_dir+'/cifar_model_n5.pkl'));
+        #model = pickle.load(open(params_dir+'/cifar_model_n5.pkl'));
         #nn.layers.set_all_param_values(ret['output'],model['param values']);
 
     elif version == 10:#192, add small img short cuts
